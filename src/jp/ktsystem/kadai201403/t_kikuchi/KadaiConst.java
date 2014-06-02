@@ -58,7 +58,7 @@ public class KadaiConst {
 	/**
 	 * カンマのみ許可パターン
 	 */
-	public static final String ONLY_COMMA_PATTERN ="\\s*:\\s*";
+	public static final String ONLY_COMMA_PATTERN ="\\s*,\\s*";
 
 	/**
 	 * 左中かっこのみ許可パターン
@@ -78,8 +78,9 @@ public class KadaiConst {
 	/**
 	 * レベル２用の月毎の分割パターン
 	 * \s*"\d{6}"\s*:\s*[(\[].+?])\]]
+	 * \s*"\d{6}"\s*:\s*[\[].+?[\]]
 	 */
-	public static final String LEVEL2_MONTHLY_PATTERN ="\\s*\"\\d{6}\"\\s*:\\s*[(\\[].+*[)\\]]";
+	public static final String LEVEL2_MONTHLY_PATTERN = "\\s*\"\\d{6}\"\\s*:\\s*[\\[].+?[\\]]";
 
 	/**
 	 * レベル２用の日ごと分割パターン
@@ -92,6 +93,13 @@ public class KadaiConst {
 	 * 例) "20140101"
 	 */
 	public static final String LEVEL2_DAY_STR_PATTERN = "\"\\d{8}\"";
+
+	/**
+	 * レベル２の日ごとデータの日付を抜いた部分
+	 * "201402": [ {  に一致
+	 * "\d{6}"\s*:\s*\[\s*\{\s*
+	 */
+	public static final String LEVEL2_SPACE_OF_DAY_AND_BEAN = "\"\\d{6}\"\\s*:\\s*\\[\\s*\\{\\s*";
 
 
 	/**

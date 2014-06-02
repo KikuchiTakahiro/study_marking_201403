@@ -38,7 +38,6 @@ public class Kadai {
 	 */
 	public static final String KEY_END = "end";
 
-
 	/**
 	 * デフォルト出力パス
 	 */
@@ -98,12 +97,12 @@ public class Kadai {
 		List<String> aFileStrList = FileUtill.readFile(anInputPath);
 
 		String aFileStr = null;
-		StringBuilder tempSb =  new StringBuilder();
-		for(String temStr :aFileStrList){
+		StringBuilder tempSb = new StringBuilder();
+		for (String temStr : aFileStrList) {
 			tempSb.append(temStr);
 		}
 		// ファイルの文字列
-		aFileStr  = tempSb.toString();
+		aFileStr = tempSb.toString();
 
 		// 読み込んだ文字列を日毎に整形	 例)   {"date":"20140101", "start":"0900", "end":"1800" }, {"date":"20140101", "start":"0900", "end":"1800" },... } ],
 		Pattern aByDayPattern = Pattern.compile(KadaiConst.LEVEL1_DAILY_PATTERN);
@@ -112,7 +111,7 @@ public class Kadai {
 		List<String> aFileStrListByDay = new ArrayList<String>();
 
 		// パターンに合うのを取り出す
-		while(aByDayMatcher.find())
+		while (aByDayMatcher.find())
 		{
 			aFileStrListByDay.add(aByDayMatcher.group());
 		}
@@ -121,8 +120,6 @@ public class Kadai {
 		Integer totalWorkTime = 0;
 
 		List<OutputModel> outputModelList = new ArrayList<OutputModel>();
-
-
 
 		// 日毎をdate、start、endに分解⇒計算
 		for (String aStr : aFileStrListByDay)
@@ -172,7 +169,8 @@ public class Kadai {
 			}
 
 			outputModelList.add(resultModel);
-			if(null !=resultModel.getOutputErrorCode()) break;
+			if (null != resultModel.getOutputErrorCode())
+				break;
 		}
 
 		List<String> outputArrayList = new ArrayList<String>();
@@ -183,10 +181,7 @@ public class Kadai {
 		// ファイル出力
 		FileUtill.writeFile(anOutputPath, outputArrayList, null);
 
-
-
 	}
-
 
 	/**
 	 * レベル2
@@ -201,54 +196,58 @@ public class Kadai {
 
 		// ファイル読み込み(BOM除去付)
 		List<String> aFileStrList = FileUtill.readFile(anInputPath);
+		try {
+			String aFileStr = null;
+			StringBuilder tempSb = new StringBuilder();
 
-		String aFileStr = null;
-		StringBuilder tempSb =  new StringBuilder();
-
-		for(String temStr :aFileStrList){
-			tempSb.append(temStr);
-		}
-		// BOM除去後の文字列
-		aFileStr  = tempSb.toString();
-
-		// 読み込んだ文字列の月文字列を取得 ⇒   \s*\d{6}"\s*:\s*[\[].+*[\]]
-		// "201401": [ { "20140101" : { "start":"0900", "end":"1800" }, ... } ],"201402": [ { "20140201" : { "start":"0900", "end":"1800" }, ... } ], ⇒ 月毎に分解
-		Pattern aMonthlyPattern = Pattern.compile(KadaiConst.LEVEL2_MONTHLY_PATTERN);
-		Matcher aMonthlyMatcher = aMonthlyPattern.matcher(aFileStr);
-
-		// 月データの間チェック
-		// 一つ前の終了インデックス
-		int oneBeforeEndIndex = -1;
-		while(aMonthlyMatcher.find()){
-			int startIndex =  aMonthlyMatcher.start();
-			if(-1 != oneBeforeEndIndex){
-				// 前回ennと今回startの間に入っている文字列達をチェック処理
-				if(!  KadaiUtill.checkAmongStr(startIndex, oneBeforeEndIndex, aFileStr, KadaiConst.ONLY_COMMA_PATTERN)){
-					// コンマ1個以外に何かあった⇒ エラー ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
-					throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
-				}
+			for (String temStr : aFileStrList) {
+				tempSb.append(temStr);
 			}
-			// 初回の時、最初にマッチしたインデックス以前の文字列をチェック
-			else{
-				if(! KadaiUtill.checkAmongStr(0,startIndex , aFileStr, KadaiConst.ONLY_LEFT_MIDDLE_PARENTHESIS)){
-					// 中かっこ以外の値が入っていたのでエラーを投げる ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
-					throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
+			// BOM除去後の文字列
+			aFileStr = tempSb.toString();
+
+			// 読み込んだ文字列の月文字列を取得 ⇒   \s*\d{6}"\s*:\s*[\[].+*[\]]
+			// "201401": [ { "20140101" : { "start":"0900", "end":"1800" }, ... } ],"201402": [ { "20140201" : { "start":"0900", "end":"1800" }, ... } ], ⇒ 月毎に分解
+			Pattern aMonthlyPattern = Pattern.compile(KadaiConst.LEVEL2_MONTHLY_PATTERN);
+			Matcher aMonthlyMatcher = aMonthlyPattern.matcher(aFileStr);
+
+			// 月データの間チェック
+			// 一つ前の終了インデックス
+			int oneBeforeEndIndex = -1;
+			while (aMonthlyMatcher.find()) {
+				int startIndex = aMonthlyMatcher.start();
+				if (-1 != oneBeforeEndIndex) {
+					// 前回ennと今回startの間に入っている文字列達をチェック処理
+					if (!KadaiUtill.checkAmongStr(oneBeforeEndIndex, startIndex, aFileStr,
+							KadaiConst.ONLY_COMMA_PATTERN)) {
+						// コンマ1個以外に何かあった⇒ エラー ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
+						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
+					}
 				}
+				// 初回の時、最初にマッチしたインデックス以前の文字列をチェック
+				else {
+					if (!KadaiUtill.checkAmongStr(0, startIndex, aFileStr, KadaiConst.ONLY_LEFT_MIDDLE_PARENTHESIS)) {
+						// 中かっこ以外の値が入っていたのでエラーを投げる ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
+						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
+					}
+				}
+				// 月文字列の処理 ← とりあえず、月：[]という形の文字列を切り出したことになる
+				calcMonthlyStr(aMonthlyMatcher.group());
+				oneBeforeEndIndex = aMonthlyMatcher.end();
 			}
-			// 月文字列の処理 ← とりあえず、月：[]という形の文字列を切り出したことになる
-			calcMonthlyStr(aMonthlyMatcher.group());
-		}
 
-		// 最後にfindした位置と末尾チェック
-		if(!  KadaiUtill.checkAmongStr(oneBeforeEndIndex, aFileStr.length(), aFileStr, KadaiConst.ONLY_RIGHT_MIDDLE_PARENTHESIS)){
-			// コンマ1個以外に何かあった⇒ エラー ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
-			throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
-		}
+			// 最後にfindした位置と末尾チェック
+			if (!KadaiUtill.checkAmongStr(oneBeforeEndIndex, aFileStr.length(), aFileStr,
+					KadaiConst.ONLY_RIGHT_MIDDLE_PARENTHESIS)) {
+				// コンマ1個以外に何かあった⇒ エラー ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
+				throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
 
+		}
 
 	}
-
-
 
 	/**
 	 *  レベル２用の1月分文字列処理
@@ -261,13 +260,13 @@ public class Kadai {
 		Pattern aMonthPattern = Pattern.compile("\"\\d{6}\"");
 		Matcher aMonthMatcher = aMonthPattern.matcher(aMonthlyStr);
 
-		if(! aMonthMatcher.find()){
+		if (!aMonthMatcher.find()) {
 			/// 月文字列が存在しなかった⇒エラーを投げるだけでファイルには出力しません
 
 		}
 		String monthDataStr = aMonthMatcher.group().toString();
 		// 月の文字列の両端のダブルコーテーションを削除
-		monthDataStr= monthDataStr.substring(1,monthDataStr.length()-1);
+		monthDataStr = monthDataStr.substring(1, monthDataStr.length() - 1);
 
 		// 月文字列と大かっこの間のチェックは不要 ⇒ 引数の時点でチェックされているため
 
@@ -288,23 +287,27 @@ public class Kadai {
 				int startIndex = dailyMatcher.start();
 				if (-1 != oneBeforeEndIndex) {
 					// 前回ennと今回startの間に入っている文字列達をチェック処理
-					if (!KadaiUtill.checkAmongStr(startIndex, oneBeforeEndIndex, aMonthlyStr, KadaiConst.ONLY_COMMA_PATTERN)) {
+					if (!KadaiUtill.checkAmongStr(oneBeforeEndIndex, startIndex, aMonthlyStr,
+							KadaiConst.ONLY_COMMA_PATTERN)) {
 						// エラーコード11を投げる(制御文字列でなくてもOKとする)
 						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
 					}
 				}
 				// 初回の時、最初にマッチしたインデックス以前の文字列をチェック
 				else {
-					if (!KadaiUtill.checkAmongStr(0, startIndex, aMonthlyStr, KadaiConst.ONLY_LEFT_MIDDLE_PARENTHESIS)) {
+					if (!KadaiUtill.checkAmongStr(0, startIndex, aMonthlyStr, KadaiConst.LEVEL2_SPACE_OF_DAY_AND_BEAN)) {
 						//エラーコード11を投げる(制御文字列でなくてもOKとする)
 						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
 					}
 
 				}
+				// エンドを取得
+				oneBeforeEndIndex = dailyMatcher.end();
+
 				// 日毎のデータを取得した
 				String dailyStr = dailyMatcher.group();
 				// 1日分の計算処理
-				OutputModel oneDayModel = calcDailyDatas(monthDataStr,dailyStr, outputDateList);
+				OutputModel oneDayModel = calcDailyDatas(monthDataStr, dailyStr, outputDateList);
 
 				if (null == oneDayModel.getOutputErrorCode())
 				{
@@ -347,14 +350,14 @@ public class Kadai {
 
 	}
 
-
 	/**
 	 * 日ごとデータ計算処理
 	 * @param aDailyStr  日ごと文字列
 	 * @param anDateList 日付リスト
 	 * @throws KadaiException
 	 */
-	private static OutputModel calcDailyDatas(String aMonthDataStr, String aDailyStr,List<String> anDateList) throws KadaiException
+	private static OutputModel calcDailyDatas(String aMonthDataStr, String aDailyStr, List<String> anDateList)
+			throws KadaiException
 	{
 		// 出力モデル
 		OutputModel resultOutputModel = new OutputModel(null, null);
@@ -372,18 +375,17 @@ public class Kadai {
 
 			// 日付文字列
 			String dayStr = aDailyMatcher.group();
-			dayStr = dayStr.substring(1, dayStr.length()-1);
+			dayStr = dayStr.substring(1, dayStr.length() - 1);
 
 			// 日付が同じ月内のデータかチェック
-			if(! aMonthDataStr.equals(dayStr.substring(0,dayStr.length()-2)))
+			if (!aMonthDataStr.equals(dayStr.substring(0, dayStr.length() - 2)))
 			{
 				// 不正文字列エラーとする
 				throw new KadaiException(ErrorCode.INVALID_STRING);
 			}
 
-
 			// 日付の重複チェック
-			if(anDateList.contains(dayStr)){
+			if (anDateList.contains(dayStr)) {
 				throw new KadaiException(ErrorCode.DATE_OVERLAP);
 			}
 			anDateList.add(dayStr);
