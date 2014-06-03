@@ -21,8 +21,12 @@ public class ErrorCheck {
 	/**
 	 *  日毎データにマッチするパターン
 	 *  {"start":"0900", "end":"1800" }
+	 *  \s*"[a-zA-Z]+"\s*:\s*"\d+"\s*
 	 */
-	private static final Pattern ENABLED_DAY_PATTERN = Pattern.compile("^\\{((\\\"[a-zA-Z]*\\\"):(\\\"\\d*\\\"),*)*\\}$");
+	private static final Pattern ENABLED_DAY_PATTERN = Pattern.compile("\\s*\"[a-zA-Z]+\"\\s*:\\s*\"\\d+\"\\s*");
+//	private static final Pattern ENABLED_DAY_PATTERN = Pattern.compile("^\\{((\\\"[a-zA-Z]*\\\"):(\\\"\\d*\\\"),*)*\\}$");
+
+
 
 
 	/**  エラーチェック （入力文字列がnullまたは空(文字列長0)

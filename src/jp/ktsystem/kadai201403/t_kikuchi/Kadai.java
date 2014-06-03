@@ -105,7 +105,7 @@ public class Kadai {
 		aFileStr = tempSb.toString();
 
 		// 読み込んだ文字列を日毎に整形	 例)   {"date":"20140101", "start":"0900", "end":"1800" }, {"date":"20140101", "start":"0900", "end":"1800" },... } ],
-		Pattern aByDayPattern = Pattern.compile(KadaiConst.LEVEL1_DAILY_PATTERN);
+		Pattern aByDayPattern = Pattern.compile(KadaiConst.LEVEL1_DAILY_REGEX);
 		Matcher aByDayMatcher = aByDayPattern.matcher(aFileStr);
 
 		List<String> aFileStrListByDay = new ArrayList<String>();
@@ -208,8 +208,7 @@ public class Kadai {
 
 			// 読み込んだ文字列の月文字列を取得 ⇒   \s*\d{6}"\s*:\s*[\[].+*[\]]
 			// "201401": [ { "20140101" : { "start":"0900", "end":"1800" }, ... } ],"201402": [ { "20140201" : { "start":"0900", "end":"1800" }, ... } ], ⇒ 月毎に分解
-			Pattern aMonthlyPattern = Pattern.compile(KadaiConst.LEVEL2_MONTHLY_PATTERN);
-			Matcher aMonthlyMatcher = aMonthlyPattern.matcher(aFileStr);
+			Matcher aMonthlyMatcher = KadaiConst.LEVEL2_MONTHLY_PATTERN.matcher(aFileStr);
 
 			// 月データの間チェック
 			// 一つ前の終了インデックス
@@ -219,7 +218,7 @@ public class Kadai {
 				if (-1 != oneBeforeEndIndex) {
 					// 前回ennと今回startの間に入っている文字列達をチェック処理
 					if (!KadaiUtill.checkAmongStr(oneBeforeEndIndex, startIndex, aFileStr,
-							KadaiConst.ONLY_COMMA_PATTERN)) {
+							KadaiConst.ONLY_COMMA_REGEX)) {
 						// コンマ1個以外に何かあった⇒ エラー ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
 						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
 					}
@@ -257,8 +256,7 @@ public class Kadai {
 	private static void calcMonthlyStr(String aMonthlyStr) throws KadaiException
 	{
 		// 月を取得
-		Pattern aMonthPattern = Pattern.compile("\"\\d{6}\"");
-		Matcher aMonthMatcher = aMonthPattern.matcher(aMonthlyStr);
+		Matcher aMonthMatcher = KadaiConst.MONTH_STR_PATTERN.matcher(aMonthlyStr);
 
 		if (!aMonthMatcher.find()) {
 			/// 月文字列が存在しなかった⇒エラーを投げるだけでファイルには出力しません
@@ -273,8 +271,7 @@ public class Kadai {
 		// 日ごとデータに分解　
 		// level2の月毎のデータを日毎に取り出し
 		// { "20140101" : { "start":"0900", "end":"1800" }, "20140102" : { "start":"0900", "end":"1800" } ⇒ "20140101" : { "start":"0900", "end":"1800" } と "20140102" : { "start":"0900", "end":"1800" } に分ける
-		Pattern dailyPattern = Pattern.compile(KadaiConst.LEVEL2_DAILY_PATTERN);
-		Matcher dailyMatcher = dailyPattern.matcher(aMonthlyStr);
+		Matcher dailyMatcher = KadaiConst.LEVEL2_DAILY_PATTERN.matcher(aMonthlyStr) ;
 
 		List<OutputModel> outputModelList = new ArrayList<OutputModel>();
 		List<String> outputDateList = new ArrayList<String>();
@@ -288,19 +285,19 @@ public class Kadai {
 				if (-1 != oneBeforeEndIndex) {
 					// 前回ennと今回startの間に入っている文字列達をチェック処理
 					if (!KadaiUtill.checkAmongStr(oneBeforeEndIndex, startIndex, aMonthlyStr,
-							KadaiConst.ONLY_COMMA_PATTERN)) {
+							KadaiConst.ONLY_COMMA_REGEX)) {
 						// エラーコード11を投げる(制御文字列でなくてもOKとする)
 						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
 					}
 				}
 				// 初回の時、最初にマッチしたインデックス以前の文字列をチェック
 				else {
-					if (!KadaiUtill.checkAmongStr(0, startIndex, aMonthlyStr, KadaiConst.LEVEL2_SPACE_OF_DAY_AND_BEAN)) {
+					if (!KadaiUtill.checkAmongStr(0, startIndex, aMonthlyStr, KadaiConst.LEVEL2_SPACE_OF_DAY_AND_BEAN_REGEX)) {
 						//エラーコード11を投げる(制御文字列でなくてもOKとする)
 						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
 					}
-
 				}
+
 				// エンドを取得
 				oneBeforeEndIndex = dailyMatcher.end();
 
@@ -340,8 +337,11 @@ public class Kadai {
 				outputArrayList.add(errorModel.getOutputErrorCode().toString());
 			}
 
+			// 出力ファイル名を生成
+			String fileName = String.format("%s.txt",  monthDataStr);
+
 			// ファイル出力
-			FileUtill.writeFile(defalutOutputPath, outputArrayList, monthDataStr);
+			FileUtill.writeFile(defalutOutputPath, outputArrayList, fileName);
 
 		} catch (KadaiException ex) {
 			// ファイル出力
@@ -363,8 +363,7 @@ public class Kadai {
 		OutputModel resultOutputModel = new OutputModel(null, null);
 
 		// 日付部を取得
-		Pattern aDailyPattern = Pattern.compile(KadaiConst.LEVEL2_DAY_STR_PATTERN);
-		Matcher aDailyMatcher = aDailyPattern.matcher(aDailyStr);
+		Matcher aDailyMatcher = KadaiConst.LEVEL2_DAY_STR_PATTERN.matcher(aDailyStr);
 
 		try {
 
@@ -391,9 +390,7 @@ public class Kadai {
 			anDateList.add(dayStr);
 
 			// 日文字列と中かっこまでのチェックは引数時点でOK
-
-			Pattern beanPattern = Pattern.compile(KadaiConst.BEAN_PATTERN);
-			Matcher beanMatcher = beanPattern.matcher(aDailyStr);
+			Matcher beanMatcher =KadaiConst.BEAN_PATTERN.matcher(aDailyStr);
 
 			HashMap<String, String> aBeanMap = new HashMap<String, String>();
 			while (beanMatcher.find()) {
@@ -404,13 +401,23 @@ public class Kadai {
 					throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
 				}
 
+				// keyと
+				List<String> tempList = new ArrayList<String>();
+
 				String[] tempArray = new String[2];
-				tempArray = beanStr.split("\\\".*?\\\"");
+
+				// ダブルコーテーション内の文字列を取得
+				Matcher betweenMatcher = KadaiConst.BETWEEN_DOUBLE_QUOTATION_WORD_PATTERN.matcher(beanStr);
+				while(betweenMatcher.find()){
+					// 正規表現で引っ張ってきているのでチェックは不要
+					String temStr = betweenMatcher.group();
+					tempList.add(temStr.substring(1,temStr.length()-1));
+				}
 
 				// keyが「start」「end」のデータを格納
-				if (KEY_START.equals(tempArray[0]) || KEY_END.equals(tempArray[0]))
+				if (KEY_START.equals(tempList.get(0)) || KEY_END.equals(tempList.get(0)))
 				{
-					aBeanMap.put(tempArray[0], tempArray[1]);
+					aBeanMap.put(tempList.get(0), tempList.get(1));
 				} else {
 					throw new KadaiException(ErrorCode.INVALID_STRING);
 				}

@@ -3,6 +3,8 @@
  */
 package jp.ktsystem.kadai201403.t_kikuchi;
 
+import java.util.regex.Pattern;
+
 /**
  * 課題用定数クラス
  * @author TakahrioKikuchi
@@ -56,57 +58,142 @@ public class KadaiConst {
 	public static final int MIDNIGHT = 2400;
 
 	/**
-	 * カンマのみ許可パターン
+	 * カンマのみ許可正規表現
 	 */
-	public static final String ONLY_COMMA_PATTERN ="\\s*,\\s*";
+	public static final String ONLY_COMMA_REGEX ="\\s*,\\s*";
+
+
+	/**
+	 * カンマの意味許可パターン
+	 */
+	public static final Pattern ONLY_COMMA_PATTERN  = Pattern.compile(ONLY_COMMA_REGEX );
+
+	/**
+	 * 左中かっこのみ許可正規表現
+	 */
+	public static final String ONLY_LEFT_MIDDLE_PARENTHESIS ="\\s*\\{\\s*";
+
 
 	/**
 	 * 左中かっこのみ許可パターン
 	 */
-	public static final String ONLY_LEFT_MIDDLE_PARENTHESIS ="\\s*\\{\\s*";
+	public static final Pattern ONLY_LEFT_MIDDLE_PARENTHESIS_PATTERN = Pattern.compile(ONLY_LEFT_MIDDLE_PARENTHESIS);
 
 	/**
-	 * 右中かっこのみ許可パターン
+	 * 右中かっこのみ許可正規表現
 	 */
 	public static final String ONLY_RIGHT_MIDDLE_PARENTHESIS ="\\s*\\}\\s*";
 
 	/**
-	 * レベル１用の日ごとの分割パターン
+	 * 右中かっこのみ許可パターン
 	 */
-	public static final String LEVEL1_DAILY_PATTERN = "\\{[\\s\\S]*?\\}";
+	public static final Pattern ONLY_RIGHT_MIDDLE_PARENTHESIS_PATTERN = Pattern.compile(ONLY_RIGHT_MIDDLE_PARENTHESIS);
+
+
 
 	/**
-	 * レベル２用の月毎の分割パターン
+	 * レベル１用の日ごとの分割正規表現
+	 */
+	public static final String LEVEL1_DAILY_REGEX = "\\{[\\s\\S]*?\\}";
+
+	/**
+	 * レベル１用の日ごとの分割パターン
+	 */
+	public static final Pattern LEVEL1_DAILY_PATTERN = Pattern.compile(LEVEL1_DAILY_REGEX );
+
+
+
+	/**
+	 * 月文字列取得正規表現
+	 * 201401みたいなの
+	 */
+	public static final String MONTH_STR_REGEX = "\"\\d{6}\"";
+
+	/**
+	 * 月文字列取得パターン
+	 */
+	public static final Pattern MONTH_STR_PATTERN = Pattern.compile(MONTH_STR_REGEX );
+
+
+
+	/**
+	 * ダブルコーテーションで囲われている文字列を取得正規表現
+	 *  "start":"0900"
+	 */
+	public static final String BETWEEN_DOUBLE_QUOTATION_WORD_REGEX = "\".*?\"";
+
+	/**
+	 * ダブルコーテーションで囲われている文字列取得パターン
+	 */
+	public static final Pattern BETWEEN_DOUBLE_QUOTATION_WORD_PATTERN = Pattern.compile(BETWEEN_DOUBLE_QUOTATION_WORD_REGEX );
+
+
+	/**
+	 * レベル２用の月毎の分割正規表現
 	 * \s*"\d{6}"\s*:\s*[(\[].+?])\]]
 	 * \s*"\d{6}"\s*:\s*[\[].+?[\]]
 	 */
-	public static final String LEVEL2_MONTHLY_PATTERN = "\\s*\"\\d{6}\"\\s*:\\s*[\\[].+?[\\]]";
+	public static final String LEVEL2_MONTHLY_REGEX = "\\s*\"\\d{6}\"\\s*:\\s*[\\[].+?[\\]]";
+
+
+	/**
+	 * レベル２用の月毎の分割パターン
+	 */
+	public static final Pattern LEVEL2_MONTHLY_PATTERN = Pattern.compile(LEVEL2_MONTHLY_REGEX);
+
+
+	/**
+	 * レベル２用の日ごと分割正規表現
+	 * "20140101" : { "start":"0900", "end":"1800" }
+	 */
+	public static final String LEVEL2_DAILY_REGEX = "\"\\d{8}\"\\s*:\\s*\\{\\s*[\":a-zA-Z\\d,\\s]*}";
+
 
 	/**
 	 * レベル２用の日ごと分割パターン
-	 * "20140101" : { "start":"0900", "end":"1800" }
 	 */
-	public static final String LEVEL2_DAILY_PATTERN = "\"\\d{8}\"\\s*:\\s*\\{\\s*[\":a-zA-Z\\d,\\s]*}";
+	public static final Pattern LEVEL2_DAILY_PATTERN = Pattern.compile(LEVEL2_DAILY_REGEX);
+
+
+	/**
+	 * レベル２の日付部分取得正規表現
+	 * 例) "20140101"
+	 */
+	public static final String LEVEL2_DAY_STR_REGEX = "\"\\d{8}\"";
+
 
 	/**
 	 * レベル２の日付部分取得パターン
-	 * 例) "20140101"
 	 */
-	public static final String LEVEL2_DAY_STR_PATTERN = "\"\\d{8}\"";
+	public static final Pattern LEVEL2_DAY_STR_PATTERN = Pattern.compile(LEVEL2_DAY_STR_REGEX );
+
 
 	/**
-	 * レベル２の日ごとデータの日付を抜いた部分
+	 * レベル２の日ごとデータの日付を抜いた部分 正規表現
 	 * "201402": [ {  に一致
 	 * "\d{6}"\s*:\s*\[\s*\{\s*
 	 */
-	public static final String LEVEL2_SPACE_OF_DAY_AND_BEAN = "\"\\d{6}\"\\s*:\\s*\\[\\s*\\{\\s*";
+	public static final String LEVEL2_SPACE_OF_DAY_AND_BEAN_REGEX = "\\s*\"\\d{6}\"\\s*:\\s*\\[\\s*\\{\\s*";
+
+	/**
+	 * レベル２の日ごとデータの日付を抜いた部分 パターン
+	 */
+	public static final Pattern LEVEL2_SPACE_OF_DAY_AND_BEAN_PATTERN = Pattern.compile(LEVEL2_SPACE_OF_DAY_AND_BEAN_REGEX);
+
+
+
+	/**
+	 * beanの正規表現
+	 * 例) "start":"0900" みたいなの
+	 */
+	public static final String BEAN_REGEX ="\\s*\"[a-zA-Z]+\"\\s*:\\s*\"\\d+\"";
 
 
 	/**
 	 * beanのパターン
-	 * 例) "start":"0900" みたいなの
 	 */
-	public static final String BEAN_PATTERN ="\\s*\"[a-zA-Z]+\"\\s*:\\s*\"\\d+\"";
+	public static final Pattern BEAN_PATTERN = Pattern.compile(BEAN_REGEX);
+
 
 
 
