@@ -5,16 +5,15 @@ package jp.ktsystem.kadai201403.t_kikuchi;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import jp.ktsystem.kadai201403.Exception.ErrorCode;
 import jp.ktsystem.kadai201403.Exception.KadaiException;
 import jp.ktsystem.kadai201403.t_kikuchi.Models.OutputModel;
 import jp.ktsystem.kadai201403.t_kikuchi.Models.OutputModelComparator;
+import jp.ktsystem.kadai201403.t_kikuchi.Models.TargetStrModel;
 
 /**
  * 2014_03 教育課題 課題クラス
@@ -43,48 +42,6 @@ public class Kadai {
 	 */
 	private static String defalutOutputPath;
 
-	//^\{\s*\"(.*?)\"\s*:\s*\[?\s*(.*?)\s*\]?\s*\}$
-
-	// \s*\"(.+?)\"\s*:\s*\[?\s*\{(.*?)\}(?!\s*,\s*\{)\s*\]?\s*
-
-	/** 勤務時間算出
-	 * @param aStartTime 出勤時間
-	 * @param aEndTime 退社時間
-	 * @return 勤務時間(分単位)
-	 * @throws KadaiException
-	 */
-	public static String calcWorkTime(String aStartTime, String aEndTime) throws KadaiException
-	{
-		// 引数のNullorEmptyチェック
-		// 出勤時間
-		if (ErrorCheck.checkNullOrEmpty(aStartTime))
-		{
-			throw new KadaiException(ErrorCode.EMPTY);
-		}
-		// 退社時間
-		if (ErrorCheck.checkNullOrEmpty(aEndTime))
-		{
-			throw new KadaiException(ErrorCode.EMPTY);
-		}
-
-		// 使える文字かどうかチェック(HHmm形式で表示されているかチェック)
-		// 出勤時間
-		if (ErrorCheck.checkEnableWord(aStartTime))
-		{
-			throw new KadaiException(ErrorCode.INVALID_STRING);
-		}
-		// 退社時間
-		if (ErrorCheck.checkEnableWord(aEndTime))
-		{
-			throw new KadaiException(ErrorCode.INVALID_STRING);
-		}
-
-		// これ以降は、引数として正しい文字しか来ていない「HHmm」形式しか通らない+
-		WorkTimer workTime = new WorkTimer(aStartTime, aEndTime);
-
-		return Integer.toString(workTime.calcWorkingTime());
-	}
-
 	/**
 	 * レベル1
 	* @param anInputPath 	読み込みファイルパス
@@ -93,6 +50,16 @@ public class Kadai {
 	*/
 	public static void parseWorkTimeData(String anInputPath, String anOutputPath) throws KadaiException
 	{
+
+		// 引数チェック
+		if (ErrorCheck.isNullOrEmpty(anInputPath)) {
+
+			throw new KadaiException(ErrorCode.INPUT_PATH_IS_NULL_OR_EMPTY);
+		}
+		else if (ErrorCheck.isNullOrEmpty(anOutputPath)) {
+			throw new KadaiException(ErrorCode.OUTPUT_PATH_IS_NULL_OR_EMPTY);
+		}
+
 		// ファイル読み込み(BOM除去付)
 		List<String> aFileStrList = FileUtill.readFile(anInputPath);
 
@@ -105,62 +72,50 @@ public class Kadai {
 		aFileStr = tempSb.toString();
 
 		// 読み込んだ文字列を日毎に整形	 例)   {"date":"20140101", "start":"0900", "end":"1800" }, {"date":"20140101", "start":"0900", "end":"1800" },... } ],
-		Pattern aByDayPattern = Pattern.compile(KadaiConst.LEVEL1_DAILY_REGEX);
-		Matcher aByDayMatcher = aByDayPattern.matcher(aFileStr);
+		// 日毎のパターンに合うのを取り出す
+		TargetStrModel dailyModel = KadaiUtill.getTargetList(aFileStr, KadaiConst.LEVEL1_DAILY_PATTERN,
+				KadaiConst.ONLY_LEFT_LARGE_PARNTHESIS_PATTERN,
+				KadaiConst.ONLY_COMMA_PATTERN, KadaiConst.ONLY_RIGHT_LARGE_PARNTHESIS_PATTERN);
 
-		List<String> aFileStrListByDay = new ArrayList<String>();
-
-		// パターンに合うのを取り出す
-		while (aByDayMatcher.find())
-		{
-			aFileStrListByDay.add(aByDayMatcher.group());
+		// 日毎パターン文字列が取得できない場合、
+		if (0 >= dailyModel.getTargetList().size()) {
+			// エラーコードを指定ファイルに出力
+			FileUtill.writeErrorCodeFile(anOutputPath, dailyModel.getTargetErrorCode(), null);
 		}
+		dailyModel.getTargetErrorCode();
 
 		// トータル勤務時間
 		Integer totalWorkTime = 0;
 
+		// 出力用モデルリスト
 		List<OutputModel> outputModelList = new ArrayList<OutputModel>();
 
 		// 日毎をdate、start、endに分解⇒計算
-		for (String aStr : aFileStrListByDay)
+		for (String aStr : dailyModel.getTargetList())
 		{
 			OutputModel resultModel = new OutputModel(null, null);
 			try {
 
 				// 日毎に整形した文字列をビーンリストに整形  "date":"20140421","start":"0900","end":"1800"の三つkey:value のセットリストを形成
-				List<String> aFileStrListByDayBeanList = KadaiUtill.getBeanList(aStr);
+				TargetStrModel aBeanList = KadaiUtill.getTargetList(aStr, KadaiConst.BEAN_PATTERN,
+						KadaiConst.ONLY_LEFT_MIDDLE_PARENTHESIS_PATTERN, KadaiConst.ONLY_COMMA_PATTERN,
+						KadaiConst.ONLY_RIGHT_MIDDLE_PARENTHESIS_PATTERN);
 
-				HashMap<String, String> aBeanMap = new HashMap<String, String>();
-				for (String aBean : aFileStrListByDayBeanList)
-				{
-					String[] tempArray = new String[2];
-					tempArray = aBean.split("\\s*:\\s", 0);
-
-					// ダブルコーテンション内の文字列内の改行、タブ、スペースが入っている場合は、エラー ⇒ファイルの入力文字エラー
-					if (KadaiUtill.checkNewLineTabSpace(tempArray[0]) || KadaiUtill.checkNewLineTabSpace(tempArray[1]))
-					{
-						throw new KadaiException(ErrorCode.INVALID_STRING);
-					}
-
-					// keyとvalueは両端にダブルコーテーションを含むので、削除
-					tempArray[0] = tempArray[0].substring(1, tempArray[0].length() - 1);
-					tempArray[1] = tempArray[1].substring(1, tempArray[1].length() - 1);
-
-					// key  の中身を判別
-					if (KEY_DATE.equals(tempArray[0]) || KEY_START.equals(tempArray[0]) || KEY_END.equals(tempArray[0]))
-					{
-						aBeanMap.put(tempArray[0], tempArray[1]);
-					} else {
-						throw new KadaiException(ErrorCode.INVALID_STRING);
-					}
+				// ビーンリスト生成時にエラーが発生した場合はスロー
+				if (null != aBeanList.getTargetErrorCode()) {
+					throw new KadaiException(aBeanList.getTargetErrorCode());
 				}
-				// 勤怠時間を計算
-				String myWorkTime = calcWorkTime(aBeanMap.get(KEY_START), aBeanMap.get(KEY_END));
-				totalWorkTime += Integer.parseInt(myWorkTime);
 
-				// ファイル出力文字列リスト作成
-				resultModel.setOutputDate(aBeanMap.get(KEY_DATE));
-				resultModel.setOutputWorkTime(myWorkTime.toString());
+				// keyとして許可された文字列リスト
+				List<String> beanKeyList = new ArrayList<String>();
+				beanKeyList.add(KadaiConst.KEY_DATE);
+				beanKeyList.add(KadaiConst.KEY_START);
+				beanKeyList.add(KadaiConst.KEY_END);
+
+				// 1日分のデータから出力用データ算出
+				resultModel = KadaiUtill.getOutputModel(aBeanList.getTargetList(), beanKeyList, null);
+				// 累積勤務時間を設定
+				totalWorkTime += Integer.valueOf(resultModel.getOutputWorkTime());
 				resultModel.setOutputTotalWorkTime(totalWorkTime.toString());
 
 			} catch (KadaiException ex)
@@ -175,7 +130,12 @@ public class Kadai {
 
 		List<String> outputArrayList = new ArrayList<String>();
 		for (OutputModel model : outputModelList) {
-			outputArrayList.add(model.createOutputStr());
+			if (null == model.getOutputErrorCode()) {
+				outputArrayList.add(model.createOutputStr());
+			} else {
+				outputArrayList.add(model.getOutputErrorCode().toString());
+
+			}
 		}
 
 		// ファイル出力
@@ -196,54 +156,25 @@ public class Kadai {
 
 		// ファイル読み込み(BOM除去付)
 		List<String> aFileStrList = FileUtill.readFile(anInputPath);
-		try {
-			String aFileStr = null;
-			StringBuilder tempSb = new StringBuilder();
+		String aFileStr = null;
+		StringBuilder tempSb = new StringBuilder();
 
-			for (String temStr : aFileStrList) {
-				tempSb.append(temStr);
-			}
-			// BOM除去後の文字列
-			aFileStr = tempSb.toString();
+		for (String temStr : aFileStrList) {
+			tempSb.append(temStr);
+		}
+		// BOM除去後の文字列
+		aFileStr = tempSb.toString();
 
-			// 読み込んだ文字列の月文字列を取得 ⇒   \s*\d{6}"\s*:\s*[\[].+*[\]]
-			// "201401": [ { "20140101" : { "start":"0900", "end":"1800" }, ... } ],"201402": [ { "20140201" : { "start":"0900", "end":"1800" }, ... } ], ⇒ 月毎に分解
-			Matcher aMonthlyMatcher = KadaiConst.LEVEL2_MONTHLY_PATTERN.matcher(aFileStr);
+		TargetStrModel monthlyModel = KadaiUtill.getTargetList(aFileStr, KadaiConst.LEVEL2_MONTHLY_PATTERN,
+				KadaiConst.ONLY_LEFT_MIDDLE_PARENTHESIS_PATTERN,
+				KadaiConst.ONLY_COMMA_PATTERN, KadaiConst.ONLY_RIGHT_MIDDLE_PARENTHESIS_PATTERN);
 
-			// 月データの間チェック
-			// 一つ前の終了インデックス
-			int oneBeforeEndIndex = -1;
-			while (aMonthlyMatcher.find()) {
-				int startIndex = aMonthlyMatcher.start();
-				if (-1 != oneBeforeEndIndex) {
-					// 前回ennと今回startの間に入っている文字列達をチェック処理
-					if (!KadaiUtill.checkAmongStr(oneBeforeEndIndex, startIndex, aFileStr,
-							KadaiConst.ONLY_COMMA_REGEX)) {
-						// コンマ1個以外に何かあった⇒ エラー ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
-						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
-					}
-				}
-				// 初回の時、最初にマッチしたインデックス以前の文字列をチェック
-				else {
-					if (!KadaiUtill.checkAmongStr(0, startIndex, aFileStr, KadaiConst.ONLY_LEFT_MIDDLE_PARENTHESIS)) {
-						// 中かっこ以外の値が入っていたのでエラーを投げる ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
-						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
-					}
-				}
-				// 月文字列の処理 ← とりあえず、月：[]という形の文字列を切り出したことになる
-				calcMonthlyStr(aMonthlyMatcher.group());
-				oneBeforeEndIndex = aMonthlyMatcher.end();
-			}
+		monthlyModel.getTargetErrorCode();
 
-			// 最後にfindした位置と末尾チェック
-			if (!KadaiUtill.checkAmongStr(oneBeforeEndIndex, aFileStr.length(), aFileStr,
-					KadaiConst.ONLY_RIGHT_MIDDLE_PARENTHESIS)) {
-				// コンマ1個以外に何かあった⇒ エラー ⇒エラーコード11を投げる(制御文字列でなくてもOKとする)
-				throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-
+		// 月文字列ループ
+		for (String monthlyStr : monthlyModel.getTargetList()) {
+			// 月文字列処理
+			calcMonthlyStr(monthlyStr);
 		}
 
 	}
@@ -260,7 +191,7 @@ public class Kadai {
 
 		if (!aMonthMatcher.find()) {
 			/// 月文字列が存在しなかった⇒エラーを投げるだけでファイルには出力しません
-
+			throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
 		}
 		String monthDataStr = aMonthMatcher.group().toString();
 		// 月の文字列の両端のダブルコーテーションを削除
@@ -268,85 +199,61 @@ public class Kadai {
 
 		// 月文字列と大かっこの間のチェックは不要 ⇒ 引数の時点でチェックされているため
 
-		// 日ごとデータに分解　
-		// level2の月毎のデータを日毎に取り出し
-		// { "20140101" : { "start":"0900", "end":"1800" }, "20140102" : { "start":"0900", "end":"1800" } ⇒ "20140101" : { "start":"0900", "end":"1800" } と "20140102" : { "start":"0900", "end":"1800" } に分ける
-		Matcher dailyMatcher = KadaiConst.LEVEL2_DAILY_PATTERN.matcher(aMonthlyStr) ;
+		/// 日毎文字列データ取得
+		TargetStrModel dailyModel = KadaiUtill.getTargetList(aMonthlyStr, KadaiConst.LEVEL2_DAILY_PATTERN,
+				KadaiConst.LEVEL2_SPACE_OF_DAY_AND_BEAN_PATTERN, KadaiConst.ONLY_COMMA_PATTERN,
+				KadaiConst.ONLY_RIGHT_MIDDLE_PARENTHESIS_PATTERN);
+
+		// 対象リストが取得できなかったらエラー
+		if (0 >= dailyModel.getTargetList().size()) {
+			// ファイルにエラーを出力
+			FileUtill.writeErrorCodeFile(defalutOutputPath, ErrorCode.FILE_CONTAIN_CONTROL_WORD,
+					String.format("%s.txt", monthDataStr));
+		}
 
 		List<OutputModel> outputModelList = new ArrayList<OutputModel>();
 		List<String> outputDateList = new ArrayList<String>();
-		OutputModel errorModel = null;
-		// 一つ前のendのindex
-		int oneBeforeEndIndex = -1;
 
-		try {
-			while (dailyMatcher.find()) {
-				int startIndex = dailyMatcher.start();
-				if (-1 != oneBeforeEndIndex) {
-					// 前回ennと今回startの間に入っている文字列達をチェック処理
-					if (!KadaiUtill.checkAmongStr(oneBeforeEndIndex, startIndex, aMonthlyStr,
-							KadaiConst.ONLY_COMMA_REGEX)) {
-						// エラーコード11を投げる(制御文字列でなくてもOKとする)
-						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
-					}
-				}
-				// 初回の時、最初にマッチしたインデックス以前の文字列をチェック
-				else {
-					if (!KadaiUtill.checkAmongStr(0, startIndex, aMonthlyStr, KadaiConst.LEVEL2_SPACE_OF_DAY_AND_BEAN_REGEX)) {
-						//エラーコード11を投げる(制御文字列でなくてもOKとする)
-						throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
-					}
-				}
+		// 日毎文字列ループ
+		for (String aDailyStr : dailyModel.getTargetList()) {
+			// 日毎処理
+			OutputModel oneDayModel = calcDailyDatas(monthDataStr, aDailyStr, outputDateList);
 
-				// エンドを取得
-				oneBeforeEndIndex = dailyMatcher.end();
-
-				// 日毎のデータを取得した
-				String dailyStr = dailyMatcher.group();
-				// 1日分の計算処理
-				OutputModel oneDayModel = calcDailyDatas(monthDataStr, dailyStr, outputDateList);
-
-				if (null == oneDayModel.getOutputErrorCode())
-				{
-					outputModelList.add(oneDayModel);
-
-				} else {
-					errorModel = oneDayModel;
-					break;
-				}
+			outputModelList.add(oneDayModel);
+			if (null != oneDayModel.getOutputErrorCode()) {
+				break;
 			}
+		}
 
-			// 日付で昇順ソート
-			Collections.sort(outputModelList, new OutputModelComparator());
+		// 日付で昇順ソート
+		Collections.sort(outputModelList, new OutputModelComparator());
 
-			// 累計勤務時間
-			int totalWorkTime = 0;
-			List<String> outputArrayList = new ArrayList<String>();
+		// 累計勤務時間
+		int totalWorkTime = 0;
+		List<String> outputArrayList = new ArrayList<String>();
 
-			Iterator<OutputModel> it = outputModelList.iterator();
-			while (it.hasNext()) {
-				OutputModel model = it.next();
+		Iterator<OutputModel> it = outputModelList.iterator();
+		while (it.hasNext()) {
+			OutputModel model = it.next();
 
+			if (null == model.getOutputErrorCode()) {
 				totalWorkTime += Integer.parseInt(model.getOutputWorkTime());
 				model.setOutputTotalWorkTime(String.valueOf(totalWorkTime));
 				// 出力文字列に追加
 				outputArrayList.add(model.createOutputStr());
+
+			} else {
+				outputArrayList.add(model.getOutputErrorCode().toString());
+
 			}
 
-			if (null != errorModel) {
-				outputArrayList.add(errorModel.getOutputErrorCode().toString());
-			}
-
-			// 出力ファイル名を生成
-			String fileName = String.format("%s.txt",  monthDataStr);
-
-			// ファイル出力
-			FileUtill.writeFile(defalutOutputPath, outputArrayList, fileName);
-
-		} catch (KadaiException ex) {
-			// ファイル出力
-			FileUtill.writeFile(defalutOutputPath, ex.getErrorCode().toString(), monthDataStr);
 		}
+
+		// 出力ファイル名を生成
+		String fileName = String.format("%s.txt", monthDataStr);
+
+		// ファイル出力
+		FileUtill.writeFile(defalutOutputPath, outputArrayList, fileName);
 
 	}
 
@@ -389,46 +296,25 @@ public class Kadai {
 			}
 			anDateList.add(dayStr);
 
-			// 日文字列と中かっこまでのチェックは引数時点でOK
-			Matcher beanMatcher =KadaiConst.BEAN_PATTERN.matcher(aDailyStr);
+			// 日毎文字列から日付部を除いた { "20140101" : { "start":"0900", "end":"1800" } ⇒ : { "start":"0900", "end":"1800" }
+			aDailyStr = aDailyStr.substring(aDailyMatcher.end() + 1);
 
-			HashMap<String, String> aBeanMap = new HashMap<String, String>();
-			while (beanMatcher.find()) {
-				String beanStr = beanMatcher.group();
-				// 日ごとに分けた文字列で制御文字が入っていないかチェック
-				if (ErrorCheck.checkEnableDayData(beanStr))
-				{
-					throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
-				}
+			TargetStrModel beanModel = KadaiUtill.getTargetList(aDailyStr, KadaiConst.BEAN_PATTERN,
+					KadaiConst.ONLY_COLON_AND_RIGHT_MIDDLE_PARENTHESIS_PATTERN,
+					KadaiConst.ONLY_COMMA_PATTERN, KadaiConst.ONLY_RIGHT_MIDDLE_PARENTHESIS_PATTERN);
 
-				// keyと
-				List<String> tempList = new ArrayList<String>();
-
-				String[] tempArray = new String[2];
-
-				// ダブルコーテーション内の文字列を取得
-				Matcher betweenMatcher = KadaiConst.BETWEEN_DOUBLE_QUOTATION_WORD_PATTERN.matcher(beanStr);
-				while(betweenMatcher.find()){
-					// 正規表現で引っ張ってきているのでチェックは不要
-					String temStr = betweenMatcher.group();
-					tempList.add(temStr.substring(1,temStr.length()-1));
-				}
-
-				// keyが「start」「end」のデータを格納
-				if (KEY_START.equals(tempList.get(0)) || KEY_END.equals(tempList.get(0)))
-				{
-					aBeanMap.put(tempList.get(0), tempList.get(1));
-				} else {
-					throw new KadaiException(ErrorCode.INVALID_STRING);
-				}
+			// ビーン取得中にエラーがあったらそれをファイル出力
+			if (null != beanModel.getTargetErrorCode()) {
+				// ファイル出力
+				throw new KadaiException(beanModel.getTargetErrorCode());
 			}
 
-			// 勤怠時間を計算
-			String myWorkTime = calcWorkTime(aBeanMap.get(KEY_START), aBeanMap.get(KEY_END));
+			// ビーンのkeyを指定
+			List<String> aBeanKeyStrList = new ArrayList<String>();
+			aBeanKeyStrList.add(KadaiConst.KEY_START);
+			aBeanKeyStrList.add(KadaiConst.KEY_END);
 
-			// 出力モデルに日付と勤務時間を設定
-			resultOutputModel.setOutputDate(aBeanMap.get(KEY_DATE));
-			resultOutputModel.setOutputWorkTime(myWorkTime.toString());
+			resultOutputModel = KadaiUtill.getOutputModel(beanModel.getTargetList(), aBeanKeyStrList, dayStr);
 
 		} catch (KadaiException kadaiEx) {
 			resultOutputModel.setOutputErrorCode(kadaiEx.getErrorCode());

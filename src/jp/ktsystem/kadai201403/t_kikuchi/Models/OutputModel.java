@@ -17,9 +17,6 @@ public class OutputModel {
 	 */
 	private String outputDate ;
 
-
-
-
 	/**
 	 * その日に勤務時間
 	 */

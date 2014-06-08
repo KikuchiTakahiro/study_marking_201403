@@ -34,7 +34,7 @@ public class ErrorCheck {
 	 * @return NullOrEmptyの時にtrueを返す
 	 * @throws KadaiException
 	 */
-	public static boolean checkNullOrEmpty(String anStr) throws KadaiException
+	public static boolean isNullOrEmpty(String anStr) throws KadaiException
 	{
 		return ((null == anStr) || (KadaiConst.EMPTY_STR.equals(anStr)));
 	}

@@ -49,12 +49,14 @@ public class FileUtill {
 	 */
 	public static List<String> readFile(String aFileName) throws KadaiException
 	{
-		if(null ==aFileName || "".equals(aFileName)){
-			throw new KadaiException(ErrorCode.INPUT_PATH_IS_NULL_OR_EMPTY);
-		}
 
 		BufferedReader br = null;
 		List<String> list = null;
+		// ファイル存在確認
+		if(! new File(aFileName).exists()){
+			throw new KadaiException(ErrorCode.FILE_NOT_FOUND);
+		}
+
 		try {
 
 			boolean firstLine = true;
@@ -82,6 +84,48 @@ public class FileUtill {
 		}
 		return list;
 	}
+
+	/**
+	 * ファイル書き込み(エラーコードのみ)
+	 * @param aFilePath : 出力ファイルのディレクトリパス
+	 * @param anErrorCode : 書き込ませるエラーコード
+	 * @param aFileName : ファイル名
+	 * @aFileName : ファイル名 (省略する場合は、NULLを指定)
+	 * @throws KadaiException
+	 */
+	public static void writeErrorCodeFile(String aFilePath, ErrorCode anErrorCode,String aFileName) throws KadaiException
+	{
+		// ファイルパスチェック
+		if(null ==aFilePath || "".equals(aFilePath)){
+			throw new KadaiException(ErrorCode.OUTPUT_PATH_IS_NULL_OR_EMPTY);
+		}
+
+		// ファイルパス＋ ファイル名 からファイルの絶対パスを作成
+		StringBuilder sb  =new StringBuilder();
+		sb.append(aFilePath);
+
+		if (null != aFileName){
+			sb.append("\\").append(aFileName);
+		}
+
+		BufferedWriter bw = null;
+		try {
+			bw = new BufferedWriter(new FileWriter(new File(sb.toString()),false));
+			bw.write(anErrorCode.toString());
+			bw.newLine();
+			bw.close();
+		} catch (IOException e) {
+			throw new KadaiException(ErrorCode.FILE_OUTPUT_FAILD);
+		} finally {
+			if (bw != null) {
+				try {
+					bw.close();
+				} catch (Exception ex) {
+				}
+			}
+		}
+	}
+
 
 	/**
 	 * ファイル書き込み

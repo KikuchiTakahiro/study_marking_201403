@@ -57,6 +57,47 @@ public class KadaiConst {
 	 */
 	public static final int MIDNIGHT = 2400;
 
+
+	/**
+	 * 読み取りデータのキー date
+	 */
+	public static final String KEY_DATE = "date";
+
+	/**
+	 * 読み取りデータのキー start
+	 */
+	public static final String KEY_START = "start";
+	/**
+	 * 読み取りデータのキー end
+	 */
+	public static final String KEY_END = "end";
+
+
+	/**
+	 * 左大かっこのみ許可正規表現
+	 */
+	public static final String ONLY_LEFT_LARGE_PARNTHESIS_REGEX = "\\s*\\[\\s*";
+
+
+	/**
+	 * 左大かっこのみ許可パターン
+	 */
+	public static final Pattern ONLY_LEFT_LARGE_PARNTHESIS_PATTERN = Pattern.compile(ONLY_LEFT_LARGE_PARNTHESIS_REGEX);
+
+	/**
+	 * 右大かっこのみ許可正規表現
+	 */
+	public static final String ONLY_RIGHT_LARGE_PARNTHESIS_REGEX = "\\s*\\]\\s*";
+
+
+	/**
+	 * 右大かっこのみ許可パターン
+	 */
+	public static final Pattern ONLY_RIGHT_LARGE_PARNTHESIS_PATTERN = Pattern.compile(ONLY_RIGHT_LARGE_PARNTHESIS_REGEX);
+
+
+
+
 	/**
 	 * カンマのみ許可正規表現
 	 */
@@ -90,6 +131,17 @@ public class KadaiConst {
 	public static final Pattern ONLY_RIGHT_MIDDLE_PARENTHESIS_PATTERN = Pattern.compile(ONLY_RIGHT_MIDDLE_PARENTHESIS);
 
 
+    /**
+     * コロンと左中かっこのみ許容正規表現
+     */
+    public static final String ONLY_COLON_AND_RIGHT_MIDDLE_PARENTHESIS = "\\s*:\\s\\{\\s*";
+
+    /**
+     * コロンと左中かっこのみ許容パターン
+     */
+    public static final Pattern ONLY_COLON_AND_RIGHT_MIDDLE_PARENTHESIS_PATTERN = Pattern.compile(ONLY_COLON_AND_RIGHT_MIDDLE_PARENTHESIS);
+
+
 
 	/**
 	 * レベル１用の日ごとの分割正規表現
@@ -98,8 +150,9 @@ public class KadaiConst {
 
 	/**
 	 * レベル１用の日ごとの分割パターン
+	 * 中かっこから中かっこまで
 	 */
-	public static final Pattern LEVEL1_DAILY_PATTERN = Pattern.compile(LEVEL1_DAILY_REGEX );
+	public static  Pattern LEVEL1_DAILY_PATTERN =  Pattern.compile(LEVEL1_DAILY_REGEX);
 
 
 

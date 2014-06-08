@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import jp.ktsystem.kadai201403.Exception.ErrorCode;
 import jp.ktsystem.kadai201403.Exception.KadaiException;
 import jp.ktsystem.kadai201403.t_kikuchi.Kadai;
+import jp.ktsystem.kadai201403.t_kikuchi.KadaiUtill;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -227,27 +228,173 @@ public class TestKadai201311 {
 		assertFail("0800", "0830", ErrorCode.STARTTIME_OVER_ENDTIME);
 	}
 
+	//// ここから2014/03のtest
+
 	/**
-	 *
+	 * エラーコード Empty
 	 */
 	@Test
 	public void test_G02T101()
 	{
 
-		assertEqualsForLevel1("C:\\workspace_study\\2014_3\\test\\Input\\testData.txt",
-							"C:\\workspace_study\\2014_3\\test\\Output\test.txt");
-
+		assertFailLevel1(null, "C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt",
+				ErrorCode.INPUT_PATH_IS_NULL_OR_EMPTY);
 	}
 
 	/**
-	 * レベル1
+	 * エラーコード Empty
 	 */
 	@Test
 	public void test_G02T102()
 	{
 
+		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data.txt", null,
+				ErrorCode.OUTPUT_PATH_IS_NULL_OR_EMPTY);
+	}
+
+	/**
+	 * エラーコード Empty
+	 */
+	@Test
+	public void test_G02T103()
+	{
+
+		assertFailLevel1("", "hoge", ErrorCode.INPUT_PATH_IS_NULL_OR_EMPTY);
+	}
+
+	/**
+	 * エラーコード Empty
+	 */
+	@Test
+	public void test_G02T104()
+	{
+
+		assertFailLevel1("hoge", "", ErrorCode.OUTPUT_PATH_IS_NULL_OR_EMPTY);
+	}
+
+	/**
+	 * 入力パスが存在しないパス
+	 */
+	@Test
+	public void test_G02T105()
+	{
+
+		assertFailLevel1("c:\\hoge", "C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt", ErrorCode.FILE_NOT_FOUND);
+
+	}
+
+	/**
+	 * 対象ファイルが指定のファイル形式ではない
+	 */
+	@Test
+	public void test_G02T106()
+	{
+
+		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\LV1_json形式ではない.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt", ErrorCode.FILE_CONTAIN_CONTROL_WORD);
+	}
+
+	/**
+	 * 対象ファイルに制御文字を含む
+	 */
+	@Test
+	public void test_G02T107()
+	{
+
+		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data_制御文字含み.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt", ErrorCode.FILE_CONTAIN_CONTROL_WORD);
+	}
+
+	/**
+	 * 対象ファイルのkeyが足りない
+	 */
+	@Test
+	public void test_G02T108()
+	{
+
+		assertEqualsForLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data_key足りない.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt");
+	}
+
+	/**
+	 * 対象ファイルのkeyが多い
+	 */
+	@Test
+	public void test_G02T109()
+	{
+
+		assertEqualsForLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data_key多い.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\hoge5.txt");
+	}
+
+	/**
+	 * 対象ファイルのkeyが重複
+	 */
+	@Test
+	public void test_G02T110()
+	{
+
+		assertEqualsForLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data_key重複.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\hoge6.txt");
+	}
+
+	/**
+	 * 対象ファイルのvalueがnull
+	 */
+	@Test
+	public void test_G02T111()
+	{
+
+		assertEqualsForLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data_valueNULL.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\hoge7.txt");
+	}
+
+	/**
+	 * 出力ファイルが存在しない
+	 */
+	@Test
+	public void test_G02T117()
+	{
+
+		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data.txt",
+				"C:\\workspace_study\\2014_3\\test\\hogepiyot\\hoge7.txt",ErrorCode.FILE_OUTPUT_FAILD);
+	}
+	//test_ReadOnly
+	/**
+	 * 出力ファイルが読み取り専用
+	 */
+	@Test
+	public void test_G02T118()
+	{
+
+		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\test_ReadOnly.txt",ErrorCode.FILE_OUTPUT_FAILD);
+	}
+	
+	//test_notUTF8
+	/**
+	 * 出力ファイルが存在し、UTF8以外
+	 */
+	@Test
+	public void test_G02T119()
+	{
+
+		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\test_notUTF8.txt",ErrorCode.FILE_OUTPUT_FAILD);
+	}	
+	
+
+
+
+	/**
+	 * レベル1
+	 */
+	@Test
+	public void test_G02T210()
+	{
+
 		assertEqualsForLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data.txt",
-							"C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt");
+				"C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt");
 
 	}
 
@@ -259,12 +406,10 @@ public class TestKadai201311 {
 	{
 
 		assertEqualsForLevel2("C:\\workspace_study\\2014_3\\test\\Input\\testLevel2Data.txt",
-							"C:\\workspace_study\\2014_3\\test\\Output");
+				"C:\\workspace_study\\2014_3\\test\\Output");
 
 	}
 
-	
-	
 	// testLevel2Data.txt
 
 	/**
@@ -276,14 +421,11 @@ public class TestKadai201311 {
 
 		Pattern aMonthPattern = Pattern.compile(",");
 		Matcher aMonthMatcher = aMonthPattern.matcher(",,,,,,");
-		while(aMonthMatcher.find()){
+		while (aMonthMatcher.find()) {
 
 			System.out.println(aMonthMatcher.groupCount());
 
-
 		}
-
-
 
 	}
 
@@ -296,35 +438,43 @@ public class TestKadai201311 {
 	private void assertEquals(String aStartTime, String aEndTime, String expected) {
 
 		try {
-			Assert.assertEquals(expected, Kadai.calcWorkTime(aStartTime, aEndTime));
+			Assert.assertEquals(expected, KadaiUtill.calcWorkTime(aStartTime, aEndTime));
 		} catch (KadaiException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
+	/**
+	 * レベル１の正常系テスト
+	 *
+	 * @param anInputFilePath
+	 * @param anOutputFilePath
+	 */
 	private void assertEqualsForLevel1(String anInputFilePath, String anOutputFilePath) {
 
 		try {
-			 Kadai.parseWorkTimeData(anInputFilePath, anOutputFilePath);
+			Kadai.parseWorkTimeData(anInputFilePath, anOutputFilePath);
 		} catch (KadaiException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-
+	/**
+	 * レベル２の正常系テスト
+	 * @param anInputFilePath
+	 * @param anOutputFolderPath
+	 */
 	private void assertEqualsForLevel2(String anInputFilePath, String anOutputFolderPath) {
 
 		try {
-			 Kadai.parseWorkTimeDataLv2(anInputFilePath, anOutputFolderPath);
+			Kadai.parseWorkTimeDataLv2(anInputFilePath, anOutputFolderPath);
 		} catch (KadaiException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-
-
 	/**
-	 * �ُ퓮��m�F
+	 * 勤怠のテスト
 	 * @param aStartTime �Ζ��J�n����
 	 * @param aEndTime �Ζ��I������
 	 * @param expecteds throw�����G���[�R�[�h
@@ -332,7 +482,23 @@ public class TestKadai201311 {
 	private void assertFail(String aStartTime, String aEndTime, ErrorCode expected) {
 
 		try {
-			Kadai.calcWorkTime(aStartTime, aEndTime);
+			KadaiUtill.calcWorkTime(aStartTime, aEndTime);
+			Assert.fail();
+		} catch (KadaiException e) {
+			Assert.assertEquals(expected, e.getErrorCode());
+		}
+	}
+
+	/**
+	 * レベル１のファイル出力以外のエラーを出すパターン
+	 * @param aStartTime
+	 * @param aEndTime
+	 * @param expecteds throw
+	 */
+	private void assertFailLevel1(String anInputFilePath, String anOutputFolderPath, ErrorCode expected) {
+
+		try {
+			Kadai.parseWorkTimeData(anInputFilePath, anOutputFolderPath);
 			Assert.fail();
 		} catch (KadaiException e) {
 			Assert.assertEquals(expected, e.getErrorCode());
