@@ -106,14 +106,8 @@ public class Kadai {
 					throw new KadaiException(aBeanList.getTargetErrorCode());
 				}
 
-				// keyとして許可された文字列リスト
-				List<String> beanKeyList = new ArrayList<String>();
-				beanKeyList.add(KadaiConst.KEY_DATE);
-				beanKeyList.add(KadaiConst.KEY_START);
-				beanKeyList.add(KadaiConst.KEY_END);
-
 				// 1日分のデータから出力用データ算出
-				resultModel = KadaiUtill.getOutputModel(aBeanList.getTargetList(), beanKeyList, null);
+				resultModel = KadaiUtill.getOutputModel(aBeanList.getTargetList(), KadaiConst.BEAN_KEY_LIST_LEVEL1, null);
 				// 累積勤務時間を設定
 				totalWorkTime += Integer.valueOf(resultModel.getOutputWorkTime());
 				resultModel.setOutputTotalWorkTime(totalWorkTime.toString());
@@ -193,7 +187,7 @@ public class Kadai {
 			/// 月文字列が存在しなかった⇒エラーを投げるだけでファイルには出力しません
 			throw new KadaiException(ErrorCode.FILE_CONTAIN_CONTROL_WORD);
 		}
-		String monthDataStr = aMonthMatcher.group().toString();
+		String monthDataStr = aMonthMatcher.group();
 		// 月の文字列の両端のダブルコーテーションを削除
 		monthDataStr = monthDataStr.substring(1, monthDataStr.length() - 1);
 
@@ -209,6 +203,7 @@ public class Kadai {
 			// ファイルにエラーを出力
 			FileUtill.writeErrorCodeFile(defalutOutputPath, ErrorCode.FILE_CONTAIN_CONTROL_WORD,
 					String.format("%s.txt", monthDataStr));
+			return;
 		}
 
 		List<OutputModel> outputModelList = new ArrayList<OutputModel>();
@@ -309,12 +304,8 @@ public class Kadai {
 				throw new KadaiException(beanModel.getTargetErrorCode());
 			}
 
-			// ビーンのkeyを指定
-			List<String> aBeanKeyStrList = new ArrayList<String>();
-			aBeanKeyStrList.add(KadaiConst.KEY_START);
-			aBeanKeyStrList.add(KadaiConst.KEY_END);
-
-			resultOutputModel = KadaiUtill.getOutputModel(beanModel.getTargetList(), aBeanKeyStrList, dayStr);
+			// ビーンのkeyを指定し、出力モデルを取得
+			resultOutputModel = KadaiUtill.getOutputModel(beanModel.getTargetList(), KadaiConst.BEAN_KEY_LIST_LEVEL2, dayStr);
 
 		} catch (KadaiException kadaiEx) {
 			resultOutputModel.setOutputErrorCode(kadaiEx.getErrorCode());

@@ -3,6 +3,9 @@
  */
 package jp.ktsystem.kadai201403.t_kikuchi;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -234,7 +237,6 @@ public class KadaiConst {
 	public static final Pattern LEVEL2_SPACE_OF_DAY_AND_BEAN_PATTERN = Pattern.compile(LEVEL2_SPACE_OF_DAY_AND_BEAN_REGEX);
 
 
-
 	/**
 	 * beanの正規表現
 	 * 例) "start":"0900" みたいなの
@@ -247,6 +249,36 @@ public class KadaiConst {
 	 */
 	public static final Pattern BEAN_PATTERN = Pattern.compile(BEAN_REGEX);
 
+	public static final String SPLIT_COLON_REGEX = "\\s*:\\s*";
+
+
+
+
+	/**
+	 * beanのkeyリスト レベル1
+	 */
+	public static final List<String> BEAN_KEY_LIST_LEVEL1 ;
+	static {
+		List<String> list = new ArrayList<String>();
+		list.add(KEY_DATE);
+		list.add(KEY_START);
+		list.add(KEY_END);
+		// 要素を追加できないようにしておく
+		BEAN_KEY_LIST_LEVEL1 = Collections.unmodifiableList(list);
+	}
+
+
+	/**
+	 * beanのkeyリスト レベル2
+	 */
+	public static final List<String> BEAN_KEY_LIST_LEVEL2;
+	static {
+		List<String> list = new ArrayList<String>();
+		list.add(KEY_START);
+		list.add(KEY_END);
+		// 要素を追加できないようにしておく
+		BEAN_KEY_LIST_LEVEL2 = Collections.unmodifiableList(list);
+	}
 
 
 

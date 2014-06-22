@@ -116,7 +116,7 @@ public class KadaiUtill {
 		for (String aBean : aBeanList)
 		{
 			String[] tempArray = new String[2];
-			tempArray = aBean.split("\\s*:\\s*", 0);
+			tempArray = aBean.split(KadaiConst.SPLIT_COLON_REGEX, 0);
 
 			// ダブルコーテンション内の文字列内の改行、タブ、スペースが入っている場合は、エラー ⇒ファイルの入力文字エラー
 			if (KadaiUtill.checkNewLineTabSpace(tempArray[0])
