@@ -84,7 +84,6 @@ public class Kadai {
 			return;
 		}
 
-
 		dailyModel.getTargetErrorCode();
 
 		// トータル勤務時間
