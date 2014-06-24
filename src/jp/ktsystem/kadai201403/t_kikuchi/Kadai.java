@@ -77,11 +77,14 @@ public class Kadai {
 				KadaiConst.ONLY_LEFT_LARGE_PARNTHESIS_PATTERN,
 				KadaiConst.ONLY_COMMA_PATTERN, KadaiConst.ONLY_RIGHT_LARGE_PARNTHESIS_PATTERN);
 
-		// 日毎パターン文字列が取得できない場合、
-		if (0 >= dailyModel.getTargetList().size()) {
+		// 日毎パターン文字列が取得できない場合、また、取得中にエラーがあった場合、
+		if (0 >= dailyModel.getTargetList().size() || null != dailyModel.getTargetErrorCode()  ) {
 			// エラーコードを指定ファイルに出力
 			FileUtill.writeErrorCodeFile(anOutputPath, dailyModel.getTargetErrorCode(), null);
+			return;
 		}
+
+
 		dailyModel.getTargetErrorCode();
 
 		// トータル勤務時間

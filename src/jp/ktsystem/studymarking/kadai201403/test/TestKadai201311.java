@@ -285,24 +285,27 @@ public class TestKadai201311 {
 
 	/**
 	 * 対象ファイルが指定のファイル形式ではない
+	 * ⇒ エラーコードはファイルに出力されるので、エラーコードは返さない
+	 * ⇒書き込まれるエラーコードはErrorCode.FILE_CONTAIN_CONTROL_WORD
 	 */
 	@Test
 	public void test_G02T106()
 	{
-
-		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\LV1_json形式ではない.txt",
-				"C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt", ErrorCode.FILE_CONTAIN_CONTROL_WORD);
+		assertEqualsForLevel1("C:\\workspace_study\\2014_3\\test\\Input\\LV1_json形式ではない.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt");
 	}
 
 	/**
 	 * 対象ファイルに制御文字を含む
+	 * ⇒ファイルにエラーコード書き込む
+	 * ⇒ErrorCode.FILE_CONTAIN_CONTROL_WORD
 	 */
 	@Test
 	public void test_G02T107()
 	{
 
-		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data_制御文字含み.txt",
-				"C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt", ErrorCode.FILE_CONTAIN_CONTROL_WORD);
+		assertEqualsForLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data_制御文字含み.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\hoge4.txt");
 	}
 
 	/**
@@ -370,19 +373,20 @@ public class TestKadai201311 {
 		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data.txt",
 				"C:\\workspace_study\\2014_3\\test\\Output\\test_ReadOnly.txt",ErrorCode.FILE_OUTPUT_FAILD);
 	}
-	
+
 	//test_notUTF8
 	/**
 	 * 出力ファイルが存在し、UTF8以外
+	 * ⇒ファイルが普通作られるだけ
 	 */
 	@Test
 	public void test_G02T119()
 	{
 
-		assertFailLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data.txt",
-				"C:\\workspace_study\\2014_3\\test\\Output\\test_notUTF8.txt",ErrorCode.FILE_OUTPUT_FAILD);
-	}	
-	
+		assertEqualsForLevel1("C:\\workspace_study\\2014_3\\test\\Input\\test1Data_utf8以外.txt",
+				"C:\\workspace_study\\2014_3\\test\\Output\\test_notUTF8.txt");
+	}
+
 
 
 
